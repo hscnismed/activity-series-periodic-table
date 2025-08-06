@@ -59,7 +59,7 @@ const metalPositions = {
     Xe: [18, 5],
     Cs: [1, 6],
     Ba: [2, 6],
-    "La-Lu": [3,6],
+    "La-Lu": [3, 6],
     Hf: [4, 6],
     Ta: [5, 6],
     W: [6, 6],
@@ -118,6 +118,14 @@ const metalColors = {
     Au: "#000000"   // black
 };
 
+let touchedElement = null;
+let draggedSymbol = null;
+
+function getDropzoneFromTouch(touch) {
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    return el && el.classList.contains("dropzone") ? el : null;
+}
+
 
 const dragContainer = document.getElementById("dragContainer");
 const periodicTable = document.getElementById("periodicTable");
@@ -166,6 +174,45 @@ for (let row = 1; row <= 7; row++) {
                     }
                     cell.classList.remove("highlight");
                 });
+                // --- Touch support for mobile devices ---
+                cell.addEventListener("touchstart", (e) => {
+                    touchedElement = cell;
+                    draggedSymbol = cell.textContent;
+                    e.target.classList.add("dragging");
+                }, { passive: true });
+
+                cell.addEventListener("touchend", (e) => {
+                    if (!draggedSymbol) return;
+                    const touch = e.changedTouches[0];
+                    const dropTarget = getDropzoneFromTouch(touch);
+                    if (dropTarget) {
+                        const targetSymbol = dropTarget.textContent.trim();
+                        if (draggedSymbol === targetSymbol) {
+                            dropTarget.style.backgroundColor = metalColors[draggedSymbol];
+                            dropTarget.style.color = "white";
+                            dropTarget.textContent = `✓ ${draggedSymbol}`;
+                        } else {
+                            alert("Oops! That's not the correct position.");
+                        }
+                        dropTarget.classList.remove("highlight");
+                    }
+                    e.target.classList.remove("dragging");
+                    touchedElement = null;
+                    draggedSymbol = null;
+                }, { passive: true });
+
+                cell.addEventListener("touchmove", (e) => {
+                    e.preventDefault(); // prevent scrolling
+                    const touch = e.touches[0];
+                    const dropzone = getDropzoneFromTouch(touch);
+                    document.querySelectorAll(".dropzone").forEach(zone => {
+                        zone.classList.remove("highlight");
+                    });
+                    if (dropzone) {
+                        dropzone.classList.add("highlight");
+                    }
+                }, { passive: false });
+
             }
         }
         periodicTable.appendChild(cell);
