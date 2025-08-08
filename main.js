@@ -209,6 +209,8 @@ for (let row = 1; row <= 7; row++) {
   for (let col = 1; col <= 18; col++) {
     const cell = document.createElement("div");
     cell.className = "element";
+    cell.dataset.row = row;
+    cell.dataset.col = col;
 
     const matchedElement = Object.entries(metalPositions).find(
       ([symbol, pos]) => pos[0] === col && pos[1] === row
@@ -294,3 +296,29 @@ clearAllBtn.addEventListener("click", () => {
     }
   });
 });
+
+const toggleTableSymbolsBtn = document.getElementById("toggle-table-symbols-btn");
+let tableSymbolsVisible = true;
+
+toggleTableSymbolsBtn.addEventListener("click", () => {
+  tableSymbolsVisible = !tableSymbolsVisible;
+
+  document.querySelectorAll(".dropzone").forEach((cell) => {
+    if (!cell.textContent.startsWith("✓")) {
+      if (tableSymbolsVisible) {
+        // Restore the symbol
+        const symbol = Object.keys(metalPositions).find(
+          (key) => metalPositions[key][0] === parseInt(cell.dataset.col) &&
+            metalPositions[key][1] === parseInt(cell.dataset.row)
+        );
+        if (symbol) cell.textContent = symbol;
+      } else {
+        // Hide the symbol
+        cell.textContent = "";
+      }
+    }
+  });
+
+  toggleTableSymbolsBtn.textContent = tableSymbolsVisible ? "Hide Table Symbols" : "Show Table Symbols";
+});
+
